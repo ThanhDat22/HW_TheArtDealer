@@ -1,2 +1,8 @@
 02/16/2024
 2D,JH,5S,6H
+Date : 02/27/2024
+Cards: AC,10D,KH,5S
+Date : 02/27/2024
+Cards: 4D,JC,KC,2H
+Date : 02/27/2024
+Cards: 4D,5C,KC,AH

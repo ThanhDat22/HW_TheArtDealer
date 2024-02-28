@@ -1,12 +1,15 @@
-/** The program is written using Java in IntelliJ IDE.
- *  This is The project 1 of team 1.
- *  Team 1 includes Karli Hubbard, Thanh Dat Nguyen, Aaron Radcliffe, Tennessee San, and Evgeniya Ziyadova.
- *  The Program deals 4 cards to guesses and records the cards in output file.
+/*The program is written using Java in IntelliJ IDE and Visual Studio Code.
+ * This is HW2 project of THE ART DEALER Part 2.
+ * Team 1 includes Karli Hubbard, Thanh Dat Nguyen, Tennessee San, and Evgeniya Ziyadova.
+ * The program ask player to pick four cards and display all after. Also record the picked cards in an output file call CardsDealt.txt.
  */
 
-// Created by Thanh Dat Nguyen( tnrbf@umsystem.edu) on 02/06/2024
-
-// Last updated by Thanh Dat Nguyen( tnrbf@umsystem.edu) on 02/12/2024
+//Created by Thanh Dat Nguyen (tnrbg@umsystem.edu) on 02/06/2024
+//Last updated by Thanh Dat Nguyen (tnrbg@umsystem.edu) on 02/12/2024
+//Last updated by Tennessee San (trs22f@umsystem.edu) on 02/16/2024
+//Last updated by Tennessee San (trs22f@umsystem.edu) on 02/18/2024
+//Last updated by Tennessee San (trs22f@umsystem.edu) on 02/22/2024
+//Last updated by Tennessee San (trs22f@umsystem.edu) on 02/26/2024
 
 import javax.swing.*;
 import java.awt.*;
@@ -17,101 +20,187 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+
 
 
 public class Main {
+    // Map to store suit abbreviations and their corresponding full names
+    private static final Map<String, String> suitMap = new HashMap<>();
+    private static final ArrayList<String> suitsEBNF = new ArrayList<>(Arrays.asList("S", "H", "D", "C"));
+    private static final ArrayList<String> ranksEBNF = new ArrayList<>(
+            Arrays.asList("2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A"));
+
+    static {
+        // Initialize the suitMap
+        suitMap.put("S", "spades");
+        suitMap.put("H", "hearts");
+        suitMap.put("D", "diamonds");
+        suitMap.put("C", "clubs");
+    }
+
     public static void main(String[] args) throws IOException {
 
-        ArrayList<String> suitsEBNF = new ArrayList<>(Arrays.asList("S", "H", "D", "C" ));
-        ArrayList<String> ranksEBNF = new ArrayList<>(Arrays.asList("2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A" ));
-
-
         // Opens output file
-        //Author review the I/O method in Chap 17 Liang, Y. Daniel. ( 2015). Introduction to java programming : brief version. Boston :Pearson
-        FileOutputStream outputFile = new FileOutputStream("CardsDealt.txt",true); // The input file continue writing data.
+        //Author review the I/O method in Chap 17 Liang, Y. Daniel. (2015). Introduction to Java Programming: brief version. Boston :Pearson
+        FileOutputStream outputFile = new FileOutputStream("CardsDealt.txt", true);
+
+        //The input file continue writing data.
         PrintWriter writer = new PrintWriter(outputFile);
 
-        // Write the time into output file
-        //Author review the Date Object in Chap 2 Liang, Y. Daniel. ( 2015). Introduction to java programming : brief version. Boston :Pearson
+        // Author review the I/O method in Chap 17 Liang, Y. Daniel. (2015). Introduction to Java Programming: brief version. Boston :Pearson
+        //Create format for the date
         SimpleDateFormat f = new SimpleDateFormat("MM/dd/yyyy");
+        //Get current date in the format of SimpleDateFormat
         String currentDate = f.format(new Date());
-        writer.println(currentDate);
+
+        // Display a prompt explaining the purpose of the code
+        JOptionPane.showMessageDialog(null,
+                "Welcome to Part 2 of the ART DEALER Game!\n\n" + "In this game, you will be able to pick four unique cards from a deck of playing \ncards. After choosing four cards, you will have the opportunity to continue \nor stop. If you wish to continue, you will be asked to pick four more cards. \nIf you wish to stop, the game will end.\n\nOnce you are ready, click 'OK' to start the game.");
 
 
-        // Display the announcement of the program’s purpose
-        JLabel programPurposeMes = new JLabel("\nWelcome to the Art Dealer Game!\n"
-                + "The Art Dealer is a card game for fun.\n"
-                +"Are you ready\n");
-        programPurposeMes.setFont(new Font("Arial", Font.BOLD, 48));
-        JOptionPane.showMessageDialog(null, programPurposeMes);
-
-        //  When the program executes, four cards should appear on the screen.
+        // Loop to continue the game until the user decides to stop
         do {
-            ArrayList<String> setCard = new ArrayList<>(); // Holds 4 name of Cards
-            ArrayList<String> cardSetEBNF = new ArrayList<>();
+            //Call method to pick four unique cards
+            ArrayList<String> setCard = pickFourCards(); // Pick four unique cards
 
-            int i = 0;
+            // Write the picked cards and the current date to CardsDealt.txt
+            writer.println("Date : " + currentDate + "\nCards: " + String.join(",", setCard));
+
+            // Display images of cards
+            displayPickedCards(setCard);
+
+            // Ask the user if they want to continue or stop picking cards
+            String optionMess;
             do {
-                Card ca = new Card();
-                ca.randomCard(); // Generates a card
-                String target = ca.toString(); // gets the name of the card
-                if(!setCard.contains(target)){ // if the card does exist in set of 4, adds card to the set
-                    setCard.add(target);
+                optionMess = JOptionPane.showInputDialog("Do you want to play again?\n"
+                        + "1. Yes\n"
+                        + "2. No (Exit)\n");
 
-                    // Prepares the string of card name in EBNF grammar
-                    int supIndex = ca.getSuit();
-                    int preIndex = ca.getRank();
-                    String caEBNF = ranksEBNF.get(preIndex) + suitsEBNF.get(supIndex);
-                    cardSetEBNF.add(caEBNF);
-
+                // Check if the input is not "1" or "2"
+                if (!("1".equals(optionMess) || "2".equals(optionMess))) {
+                    JOptionPane.showMessageDialog(null, "ERROR! Please enter a valid option (1 or 2).");
                 }
-                i++;
-            } while(i < 4); // End of do-while loop; Users had 4 cards.
+            } while (!("1".equals(optionMess) || "2".equals(optionMess)));
 
-            // Writes 4 card into input file
-            for(int j = 0; j < 3; ++j){
-                writer.print(cardSetEBNF.get(j) + ",");
+            // Check if input is "2" to quit/stop
+            if ("2".equals(optionMess)) {
+                JOptionPane.showMessageDialog(null, "Thank you for playing. See you next time!");
+                // Closing the files
+                writer.close();
+                outputFile.close();
+                System.exit(0);
             }
-            writer.println(cardSetEBNF.get(3));
+
+            // End of loop
+        } while (true);
+
+    }
+
+    // Method to pick four unique cards
+    private static ArrayList<String> pickFourCards() {
+
+        //List to store selected cards
+        ArrayList<String> setCard = new ArrayList<>();
+
+        // Loop to pick four unique cards
+        while (setCard.size() < 4) {
+
+            // Prompt the user to pick a card
+            String pickedCard = JOptionPane.showInputDialog(
+                    "Please pick a card to enter: \n\nExample: \n'AC' for Ace of Clubs\n'10D' for 10 of Diamonds\n'KH' for King of Hearts\n'5S' for  of Spades\n\n");
+
+            pickedCard.toUpperCase();
 
 
+            // Check if the user click cancel
+            if (pickedCard == null)
+                System.exit(0);
 
-            // Display the name of 4 cards
-            System.out.println(Arrays.toString(setCard.toArray()));
-
-            //Display the image of cards:
-
-            i = 0;
-            do {
-                // Display cards to users
-                String cardName = setCard.get(i);
-                ImageIcon im = new ImageIcon("PlayingCards/"+cardName + ".png");
-                Image newIm = im.getImage();
-                Image modifiedIm = im.getImage().getScaledInstance(300, 300, Image.SCALE_SMOOTH);
-                im = new ImageIcon(modifiedIm);
-                JOptionPane.showMessageDialog(null,cardName, "Display Image", JOptionPane.INFORMATION_MESSAGE,im);
-                i++;
-            } while( i < 4);
-
-            // Display an options menu
-            String optionMess = JOptionPane.showInputDialog("\nSelect your option in the menu below:\n"
-                    + "1. Get another 4 Card dealt.\n"
-                    + "2. Exit\n");
-            switch(optionMess){
-                case "1":
-                    break;
-                case "2":
-                    JOptionPane.showMessageDialog(null,"Thank yor for playing. See you next time.");
-
-                    //Closing the files
-                    writer.close();
-                    outputFile.close();
-                    System.exit(0);
-                default:
-                    JOptionPane.showMessageDialog(null,"Enter a valid choice.");
-                    break;
+            // Check if the picked card is valid and not already picked
+            if (isValidCard(pickedCard) && !setCard.contains(pickedCard)) {
+                setCard.add(pickedCard);
+            } else {
+                JOptionPane.showMessageDialog(null,
+                        "ERROR! Please select a valid card that has not yet been picked.");
             }
-        }  while(true); // End of do-while loop
+        }
+        return setCard;
+    }
 
+    // Method to display the picked cards and their images
+    private static void displayPickedCards(ArrayList<String> setCard) {
+
+        // Create a panel to store the card images
+        JPanel cardPanel = new JPanel(new GridLayout(1, 4));
+
+        // Add JLabels for each card to the panel
+        for (String cardName : setCard) {
+            String fileName = convertToFileName(cardName); // Convert card name to filename format
+            ImageIcon im = new ImageIcon("PlayingCards/" + fileName + ".png");
+            Image newIm = im.getImage();
+            Image modifiedIm = newIm.getScaledInstance(300, 300, Image.SCALE_SMOOTH);
+            ImageIcon scaledIm = new ImageIcon(modifiedIm);
+            JLabel cardLabel = new JLabel(scaledIm);
+            cardPanel.add(cardLabel);
+        }
+
+        // Show the panel containing all four cards
+        JOptionPane.showMessageDialog(null, cardPanel, "Here are the four cards that you selected:",
+                JOptionPane.PLAIN_MESSAGE);
+
+    }
+
+    // Method to convert card name to filename format
+    private static String convertToFileName(String cardName) {
+        String rank;
+        String suitChar;
+        if (cardName.length() == 3) {
+            rank = cardName.substring(0, 2); // Extract rank from card name
+            suitChar = cardName.substring(2); // Extract suit abbreviation from card name
+        } else {
+            rank = cardName.substring(0, 1); // Extract rank from card name
+            suitChar = cardName.substring(1); // Extract suit abbreviation from card name
+        }
+
+        // Convert letters to their corresponding numbers
+        if (rank.equals("A"))
+            rank = "14";
+        else if (rank.equals("J"))
+            rank = "11";
+        else if (rank.equals("Q"))
+            rank = "12";
+        else if (rank.equals("K"))
+            rank = "13";
+        else if (rank.equals("1")) // Reject input of "1"
+            return null;
+
+        // Convert suit abbreviation to full suit name
+        String suit = suitMap.get(suitChar); // Get full suit name from suit abbreviation
+        return rank + "_of_" + suit;
+    }
+
+    // Method to check if the picked card is valid
+    private static boolean isValidCard(String pickedCard) {
+
+        // Check if the card has 2 to 3 characters of input
+        if (pickedCard.length() != 2 && pickedCard.length() != 3)
+            return false;
+
+        // Check if the rank and suit are valid
+        String rank = pickedCard.substring(0, pickedCard.length() - 1);
+        char suit = pickedCard.charAt(pickedCard.length() - 1);
+
+        // Prevent input of "1"
+        if (rank.equals("1"))
+            return false;
+
+        // Allow input of "10"
+        if (!rank.equals("10") && !(rank.equals("A") || rank.equals("J") || rank.equals("Q") || rank.equals("K"))
+                && !Character.isDigit(rank.charAt(0)))
+            return false;
+
+        return (suitsEBNF.contains(Character.toString(suit)) && ranksEBNF.contains(rank));
     }
 }
