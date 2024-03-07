@@ -13,16 +13,12 @@
 
 import javax.swing.*;
 import java.awt.*;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-
+import java.util.*;
 
 
 public class Main {
@@ -40,13 +36,24 @@ public class Main {
         suitMap.put("C", "clubs");
     }
 
+    //main
     public static void main(String[] args) throws IOException {
 
-        // Opens output file
+
+
+        // Opens input and output files
         //Author review the I/O method in Chap 17 Liang, Y. Daniel. (2015). Introduction to Java Programming: brief version. Boston :Pearson
+        FileInputStream inputFile = new FileInputStream("CardsDealt.txt");
+        Scanner scanner = new Scanner(inputFile);
         FileOutputStream outputFile = new FileOutputStream("CardsDealt.txt", true);
 
-        //The input file continue writing data.
+        StringBuilder pre_record = new StringBuilder();
+        // Reads
+        while(scanner.hasNext()) {
+            pre_record.append(scanner.next()).append("\n");
+        }
+
+        //The output file continue writing data.
         PrintWriter writer = new PrintWriter(outputFile);
 
         // Author review the I/O method in Chap 17 Liang, Y. Daniel. (2015). Introduction to Java Programming: brief version. Boston :Pearson
@@ -55,10 +62,31 @@ public class Main {
         //Get current date in the format of SimpleDateFormat
         String currentDate = f.format(new Date());
 
+        // Panel to hold the history of picked cards
+        JPanel historyPanel = new JPanel(new BorderLayout());
+        JTextArea historyTextArea = new JTextArea(20, 20);
+        historyTextArea.setEditable(false);
+        historyTextArea.setLineWrap(true);
+        historyTextArea.setWrapStyleWord(true);
+        JScrollPane scrollPane = new JScrollPane(historyTextArea);
+        historyPanel.add(scrollPane, BorderLayout.CENTER);
+        // Set the scroll pane to be focusable
+        scrollPane.setFocusable(true);
+        // Set focus on the scroll pane
+        scrollPane.requestFocusInWindow();
+
+
+
         // Display a prompt explaining the purpose of the code
         JOptionPane.showMessageDialog(null,
                 "Welcome to Part 2 of the ART DEALER Game!\n\n" + "In this game, you will be able to pick four unique cards from a deck of playing \ncards. After choosing four cards, you will have the opportunity to continue \nor stop. If you wish to continue, you will be asked to pick four more cards. \nIf you wish to stop, the game will end.\n\nOnce you are ready, click 'OK' to start the game.");
 
+        // Add history panel to frame
+        JFrame frame = new JFrame("Card History");
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.getContentPane().add(historyPanel);
+        frame.pack();
+        frame.setVisible(true);
 
         // Loop to continue the game until the user decides to stop
         do {
@@ -66,7 +94,28 @@ public class Main {
             ArrayList<String> setCard = pickFourCards(); // Pick four unique cards
 
             // Write the picked cards and the current date to CardsDealt.txt
-            writer.println("Date : " + currentDate + "\nCards: " + String.join(",", setCard));
+            writer.println("" + currentDate + "\n" + String.join(",", setCard));
+
+            //Build text for display in text area
+            StringBuilder pickedCardsString = new StringBuilder();
+            pickedCardsString.append("Date  : ").append(currentDate).append("\nCards: ");
+
+            //loop card and add name with comma
+            for (String card : setCard) {
+                pickedCardsString.append(card).append(", ");
+            }
+
+            //remove last comma of 4th card name
+            pickedCardsString.delete(pickedCardsString.length() - 2, pickedCardsString.length());
+            //new line
+            pickedCardsString.append("\n");
+
+            historyTextArea.append(pre_record.toString());
+
+
+            historyTextArea.append(pickedCardsString.toString());
+            historyTextArea.setCaretPosition(historyTextArea.getDocument().getLength());
+            //show the most recent card
 
             // Display images of cards
             displayPickedCards(setCard);
@@ -74,23 +123,27 @@ public class Main {
             // Ask the user if they want to continue or stop picking cards
             String optionMess;
             do {
-                optionMess = JOptionPane.showInputDialog("Do you want to play again?\n"
-                        + "1. Yes\n"
-                        + "2. No (Exit)\n");
+                optionMess = JOptionPane.showInputDialog("Do you want to play again?\n\n"
+                        + "1. Yes, this game is awesome!\n"
+                        + "2. No, this game is boring.\n\n"
+                        + "Please enter '1' or '2'.\n\n");
 
                 // Check if the input is not "1" or "2"
                 if (!("1".equals(optionMess) || "2".equals(optionMess))) {
-                    JOptionPane.showMessageDialog(null, "ERROR! Please enter a valid option (1 or 2).");
+                    JOptionPane.showMessageDialog(null, "ERROR! Please enter '1' or '2'.");
                 }
             } while (!("1".equals(optionMess) || "2".equals(optionMess)));
 
             // Check if input is "2" to quit/stop
             if ("2".equals(optionMess)) {
                 JOptionPane.showMessageDialog(null, "Thank you for playing. See you next time!");
-                // Closing the files
+
+                // Close the files
                 writer.close();
+                scanner.close();
+                inputFile.close();
                 outputFile.close();
-                System.exit(0);
+                break;
             }
 
             // End of loop
@@ -109,10 +162,7 @@ public class Main {
 
             // Prompt the user to pick a card
             String pickedCard = JOptionPane.showInputDialog(
-                    "Please pick a card to enter: \n\nExample: \n'AC' for Ace of Clubs\n'10D' for 10 of Diamonds\n'KH' for King of Hearts\n'5S' for  of Spades\n\n");
-
-            pickedCard.toUpperCase();
-
+                    "Please pick a card to enter: \n\nExample: \n'AC' for Ace of Clubs\n'10D' for 10 of Diamonds\n'KH' for King of Hearts\n'5S' for  of Spades\n\nPlease only use upper case letters and numbers.\n\n");
 
             // Check if the user click cancel
             if (pickedCard == null)
@@ -129,56 +179,55 @@ public class Main {
         return setCard;
     }
 
-    // Method to display the picked cards and their images
+    // Method to display the picked cards
     private static void displayPickedCards(ArrayList<String> setCard) {
 
         // Create a panel to store the card images
         JPanel cardPanel = new JPanel(new GridLayout(1, 4));
 
-        // Add JLabels for each card to the panel
+        // Loop each card to the panel
         for (String cardName : setCard) {
-            String fileName = convertToFileName(cardName); // Convert card name to filename format
+            String fileName = convertToFileName(cardName);
             ImageIcon im = new ImageIcon("PlayingCards/" + fileName + ".png");
             Image newIm = im.getImage();
-            Image modifiedIm = newIm.getScaledInstance(300, 300, Image.SCALE_SMOOTH);
+            Image modifiedIm = newIm.getScaledInstance(200, 300, Image.SCALE_SMOOTH);
             ImageIcon scaledIm = new ImageIcon(modifiedIm);
             JLabel cardLabel = new JLabel(scaledIm);
             cardPanel.add(cardLabel);
         }
 
         // Show the panel containing all four cards
-        JOptionPane.showMessageDialog(null, cardPanel, "Here are the four cards that you selected:",
-                JOptionPane.PLAIN_MESSAGE);
+        JOptionPane.showMessageDialog(null, cardPanel, "Here are the four cards that you selected:", JOptionPane.PLAIN_MESSAGE);
 
     }
 
     // Method to convert card name to filename format
     private static String convertToFileName(String cardName) {
-        String rank;
-        String suitChar;
+        String cardRank;
+        String cardSuit;
         if (cardName.length() == 3) {
-            rank = cardName.substring(0, 2); // Extract rank from card name
-            suitChar = cardName.substring(2); // Extract suit abbreviation from card name
+            cardRank = cardName.substring(0, 2); // Extract rank
+            cardSuit = cardName.substring(2); // Extract suit
         } else {
-            rank = cardName.substring(0, 1); // Extract rank from card name
-            suitChar = cardName.substring(1); // Extract suit abbreviation from card name
+            cardRank = cardName.substring(0, 1); // Extract rank
+            cardSuit = cardName.substring(1); // Extract suit
         }
 
         // Convert letters to their corresponding numbers
-        if (rank.equals("A"))
-            rank = "14";
-        else if (rank.equals("J"))
-            rank = "11";
-        else if (rank.equals("Q"))
-            rank = "12";
-        else if (rank.equals("K"))
-            rank = "13";
-        else if (rank.equals("1")) // Reject input of "1"
+        if (cardRank.equals("A"))
+            cardRank = "14";
+        else if (cardRank.equals("J"))
+            cardRank = "11";
+        else if (cardRank.equals("Q"))
+            cardRank = "12";
+        else if (cardRank.equals("K"))
+            cardRank = "13";
+        else if (cardRank.equals("1")) // Reject input of "1"
             return null;
 
-        // Convert suit abbreviation to full suit name
-        String suit = suitMap.get(suitChar); // Get full suit name from suit abbreviation
-        return rank + "_of_" + suit;
+        // Convert suit to full suit name
+        String suit = suitMap.get(cardSuit); // Get full suit name from suit abbreviation
+        return cardRank + "_of_" + suit;
     }
 
     // Method to check if the picked card is valid
